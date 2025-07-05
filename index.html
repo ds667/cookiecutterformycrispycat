@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cookie Empire</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .game-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .left-panel {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .cookie-counter {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #8B4513;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .cookie-display {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .cookie-main {
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, #D2691E 0%, #8B4513 100%);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cookie-main::before {
+            content: '';
+            position: absolute;
+            top: 20%;
+            left: 20%;
+            width: 60%;
+            height: 60%;
+            background: radial-gradient(circle, #F4A460 0%, #D2691E 100%);
+            border-radius: 50%;
+        }
+
+        .cookie-main:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.4);
+        }
+
+        .cookie-main:active {
+            transform: scale(0.95);
+        }
+
+        .chip {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #4A4A4A;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .chip1 { top: 30%; left: 25%; }
+        .chip2 { top: 45%; right: 30%; }
+        .chip3 { bottom: 35%; left: 35%; }
+        .chip4 { top: 60%; left: 50%; }
+        .chip5 { bottom: 45%; right: 25%; }
+
+        .click-effect {
+            position: absolute;
+            color: #FFD700;
+            font-weight: bold;
+            font-size: 1.5rem;
+            pointer-events: none;
+            animation: floatUp 1s ease-out forwards;
+        }
+
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+        }
+
+        .stats {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            min-width: 250px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            color: #4A4A4A;
+            font-weight: bold;
+        }
+
+        .right-panel {
+            flex: 1;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .shop-title {
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #8B4513;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .upgrade-item {
+            background: rgba(255,255,255,0.3);
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        .upgrade-item:hover {
+            background: rgba(255,255,255,0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .upgrade-item.affordable {
+            border-color: #4CAF50;
+            background: rgba(76, 175, 80, 0.2);
+        }
+
+        .upgrade-item.expensive {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .upgrade-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .upgrade-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2E4057;
+        }
+
+        .upgrade-cost {
+            font-size: 1.1rem;
+            color: #8B4513;
+            font-weight: bold;
+        }
+
+        .upgrade-description {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .upgrade-owned {
+            color: #4CAF50;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .achievements {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.9);
+            padding: 15px;
+            border-radius: 10px;
+            max-width: 300px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .achievement-title {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #8B4513;
+        }
+
+        .achievement-item {
+            background: #FFD700;
+            padding: 8px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            animation: achievementPop 0.5s ease-out;
+        }
+
+        @keyframes achievementPop {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+
+        .prestige-section {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            border: 3px solid #FF8C00;
+        }
+
+        .prestige-button {
+            background: #FF4500;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .prestige-button:hover {
+            background: #FF6500;
+            transform: scale(1.05);
+        }
+
+        .prestige-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .floating-cookies {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .floating-cookie {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: radial-gradient(circle, #D2691E 0%, #8B4513 100%);
+            border-radius: 50%;
+            animation: floatAway 3s ease-out forwards;
+        }
+
+        @keyframes floatAway {
+            0% {
+                opacity: 1;
+                transform: translateY(0) rotate(0deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-200px) rotate(360deg);
+            }
+        }
+
+        .multiplier-display {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(255,255,255,0.9);
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: bold;
+            color: #8B4513;
+        }
+
+        @media (max-width: 768px) {
+            .game-container {
+                flex-direction: column;
+            }
+            
+            .cookie-main {
+                width: 150px;
+                height: 150px;
+            }
+            
+            .achievements {
+                position: static;
+                margin-top: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-cookies"></div>
+    <div class="multiplier-display">
+        Multiplier: x<span id="multiplierDisplay">1</span>
+    </div>
+
+    <div class="game-container">
+        <div class="left-panel">
+            <div class="cookie-counter">
+                <span id="cookieCount">0</span> cookies
+            </div>
+            <div class="cookie-display">
+                <div class="cookie-main" id="mainCookie">
+                    <div class="chip chip1"></div>
+                    <div class="chip chip2"></div>
+                    <div class="chip chip3"></div>
+                    <div class="chip chip4"></div>
+                    <div class="chip chip5"></div>
+                </div>
+            </div>
+            <div class="stats">
+                <div class="stat-item">
+                    <span>Cookies per second:</span>
+                    <span id="cps">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>Total cookies baked:</span>
+                    <span id="totalCookies">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>Cookies per click:</span>
+                    <span id="cpc">1</span>
+                </div>
+                <div class="stat-item">
+                    <span>Prestige level:</span>
+                    <span id="prestigeLevel">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <h2 class="shop-title">Cookie Shop</h2>
+            <div id="upgradesList"></div>
+            
+            <div class="prestige-section">
+                <h3>Prestige System</h3>
+                <p>Reset your progress to gain permanent multipliers!</p>
+                <p>Next prestige gives: +<span id="prestigeBonus">0</span>% multiplier</p>
+                <button class="prestige-button" id="prestigeBtn" disabled>
+                    Prestige (Need 1M cookies)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="achievements">
+        <div class="achievement-title">Achievements</div>
+        <div id="achievementsList"></div>
+    </div>
+
+    <script>
+        class CookieClicker {
+            constructor() {
+                this.cookies = 0;
+                this.totalCookies = 0;
+                this.cookiesPerSecond = 0;
+                this.cookiesPerClick = 1;
+                this.prestigeLevel = 0;
+                this.prestigeMultiplier = 1;
+                this.achievements = [];
+                this.lastUpdate = Date.now();
+                
+                this.upgrades = [
+                    { name: 'Cursor', cost: 15, owned: 0, cps: 0.1, description: 'Automatically clicks the cookie' },
+                    { name: 'Grandma', cost: 100, owned: 0, cps: 1, description: 'A nice grandma to bake more cookies' },
+                    { name: 'Farm', cost: 1100, owned: 0, cps: 8, description: 'Grows cookie plants' },
+                    { name: 'Mine', cost: 12000, owned: 0, cps: 47, description: 'Mines cookies from underground' },
+                    { name: 'Factory', cost: 130000, owned: 0, cps: 260, description: 'Produces cookies industrially' },
+                    { name: 'Bank', cost: 1400000, owned: 0, cps: 1400, description: 'Generates cookies from interest' },
+                    { name: 'Temple', cost: 20000000, owned: 0, cps: 7800, description: 'Temples pray for cookies' },
+                    { name: 'Wizard Tower', cost: 330000000, owned: 0, cps: 44000, description: 'Summons cookies with magic' },
+                    { name: 'Shipment', cost: 5100000000, owned: 0, cps: 260000, description: 'Brings cookies from space' },
+                    { name: 'Alchemy Lab', cost: 75000000000, owned: 0, cps: 1600000, description: 'Transmutes gold into cookies' }
+                ];
+
+                this.achievementsList = [
+                    { name: 'First Cookie', description: 'Bake your first cookie', condition: () => this.totalCookies >= 1 },
+                    { name: 'Baker', description: 'Bake 100 cookies', condition: () => this.totalCookies >= 100 },
+                    { name: 'Cookie Monster', description: 'Bake 1,000 cookies', condition: () => this.totalCookies >= 1000 },
+                    { name: 'Mass Producer', description: 'Bake 10,000 cookies', condition: () => this.totalCookies >= 10000 },
+                    { name: 'Cookie Tycoon', description: 'Bake 100,000 cookies', condition: () => this.totalCookies >= 100000 },
+                    { name: 'First Purchase', description: 'Buy your first upgrade', condition: () => this.upgrades.some(u => u.owned > 0) },
+                    { name: 'Clicking Pro', description: 'Click 1,000 times', condition: () => this.clickCount >= 1000 },
+                    { name: 'Automation', description: 'Generate 10 CPS', condition: () => this.cookiesPerSecond >= 10 },
+                    { name: 'Industry', description: 'Generate 100 CPS', condition: () => this.cookiesPerSecond >= 100 },
+                    { name: 'Prestige Master', description: 'Reach prestige level 5', condition: () => this.prestigeLevel >= 5 }
+                ];
+
+                this.clickCount = 0;
+                this.init();
+            }
+
+            init() {
+                this.loadGame();
+                this.setupEventListeners();
+                this.renderUpgrades();
+                this.updateDisplay();
+                this.startGameLoop();
+            }
+
+            setupEventListeners() {
+                document.getElementById('mainCookie').addEventListener('click', (e) => this.clickCookie(e));
+                document.getElementById('prestigeBtn').addEventListener('click', () => this.prestige());
+            }
+
+            clickCookie(e) {
+                const clickPower = this.cookiesPerClick * this.prestigeMultiplier;
+                this.cookies += clickPower;
+                this.totalCookies += clickPower;
+                this.clickCount++;
+
+                this.showClickEffect(e, clickPower);
+                this.createFloatingCookie(e);
+                this.updateDisplay();
+                this.checkAchievements();
+            }
+
+            showClickEffect(e, amount) {
+                const effect = document.createElement('div');
+                effect.className = 'click-effect';
+                effect.textContent = `+${this.formatNumber(amount)}`;
+                effect.style.left = e.clientX + 'px';
+                effect.style.top = e.clientY + 'px';
+                document.body.appendChild(effect);
+
+                setTimeout(() => effect.remove(), 1000);
+            }
+
+            createFloatingCookie(e) {
+                const cookie = document.createElement('div');
+                cookie.className = 'floating-cookie';
+                cookie.style.left = e.clientX + 'px';
+                cookie.style.top = e.clientY + 'px';
+                document.querySelector('.floating-cookies').appendChild(cookie);
+
+                setTimeout(() => cookie.remove(), 3000);
+            }
+
+            buyUpgrade(index) {
+                const upgrade = this.upgrades[index];
+                const cost = this.getUpgradeCost(upgrade);
+
+                if (this.cookies >= cost) {
+                    this.cookies -= cost;
+                    upgrade.owned++;
+                    upgrade.cost = Math.ceil(upgrade.cost * 1.15);
+                    this.calculateCPS();
+                    this.updateDisplay();
+                    this.renderUpgrades();
+                    this.checkAchievements();
+                }
+            }
+
+            getUpgradeCost(upgrade) {
+                return Math.ceil(upgrade.cost * Math.pow(1.15, upgrade.owned));
+            }
+
+            calculateCPS() {
+                this.cookiesPerSecond = 0;
+                this.upgrades.forEach(upgrade => {
+                    this.cookiesPerSecond += upgrade.cps * upgrade.owned;
+                });
+                this.cookiesPerSecond *= this.prestigeMultiplier;
+
+                this.cookiesPerClick = 1 + (this.upgrades[0].owned * 0.1);
+            }
+
+            renderUpgrades() {
+                const container = document.getElementById('upgradesList');
+                container.innerHTML = '';
+
+                this.upgrades.forEach((upgrade, index) => {
+                    const cost = this.getUpgradeCost(upgrade);
+                    const canAfford = this.cookies >= cost;
+
+                    const upgradeEl = document.createElement('div');
+                    upgradeEl.className = `upgrade-item ${canAfford ? 'affordable' : 'expensive'}`;
+                    upgradeEl.innerHTML = `
+                        <div class="upgrade-header">
+                            <span class="upgrade-name">${upgrade.name}</span>
+                            <span class="upgrade-cost">${this.formatNumber(cost)}</span>
+                        </div>
+                        <div class="upgrade-description">${upgrade.description}</div>
+                        <div class="upgrade-owned">Owned: ${upgrade.owned} | +${this.formatNumber(upgrade.cps * this.prestigeMultiplier)} CPS each</div>
+                    `;
+
+                    if (canAfford) {
+                        upgradeEl.addEventListener('click', () => this.buyUpgrade(index));
+                    }
+
+                    container.appendChild(upgradeEl);
+                });
+            }
+
+            updateDisplay() {
+                document.getElementById('cookieCount').textContent = this.formatNumber(this.cookies);
+                document.getElementById('totalCookies').textContent = this.formatNumber(this.totalCookies);
+                document.getElementById('cps').textContent = this.formatNumber(this.cookiesPerSecond);
+                document.getElementById('cpc').textContent = this.formatNumber(this.cookiesPerClick * this.prestigeMultiplier);
+                document.getElementById('prestigeLevel').textContent = this.prestigeLevel;
+                document.getElementById('multiplierDisplay').textContent = this.prestigeMultiplier.toFixed(2);
+
+                const prestigeBonus = Math.floor(this.totalCookies / 1000000) * 10;
+                document.getElementById('prestigeBonus').textContent = prestigeBonus;
+                
+                const prestigeBtn = document.getElementById('prestigeBtn');
+                prestigeBtn.disabled = this.totalCookies < 1000000;
+                prestigeBtn.textContent = this.totalCookies >= 1000000 ? 
+                    `Prestige (+${prestigeBonus}% multiplier)` : 
+                    `Prestige (Need ${this.formatNumber(1000000 - this.totalCookies)} more cookies)`;
+            }
+
+            prestige() {
+                if (this.totalCookies >= 1000000) {
+                    const bonus = Math.floor(this.totalCookies / 1000000) * 10;
+                    this.prestigeLevel++;
+                    this.prestigeMultiplier += bonus / 100;
+                    
+                    this.cookies = 0;
+                    this.totalCookies = 0;
+                    this.cookiesPerSecond = 0;
+                    this.cookiesPerClick = 1;
+                    this.clickCount = 0;
+                    
+                    this.upgrades.forEach(upgrade => {
+                        upgrade.owned = 0;
+                        upgrade.cost = Math.ceil(upgrade.cost / Math.pow(1.15, upgrade.owned));
+                    });
+
+                    this.updateDisplay();
+                    this.renderUpgrades();
+                    this.checkAchievements();
+                }
+            }
+
+            checkAchievements() {
+                this.achievementsList.forEach(achievement => {
+                    if (!this.achievements.includes(achievement.name) && achievement.condition()) {
+                        this.achievements.push(achievement.name);
+                        this.showAchievement(achievement);
+                    }
+                });
+            }
+
+            showAchievement(achievement) {
+                const container = document.getElementById('achievementsList');
+                const achEl = document.createElement('div');
+                achEl.className = 'achievement-item';
+                achEl.innerHTML = `<strong>${achievement.name}</strong><br>${achievement.description}`;
+                container.appendChild(achEl);
+            }
+
+            formatNumber(num) {
+                if (num >= 1e12) return (num / 1e12).toFixed(1) + 'T';
+                if (num >= 1e9) return (num / 1e9).toFixed(1) + 'B';
+                if (num >= 1e6) return (num / 1e6).toFixed(1) + 'M';
+                if (num >= 1e3) return (num / 1e3).toFixed(1) + 'K';
+                return Math.floor(num).toString();
+            }
+
+            startGameLoop() {
+                setInterval(() => {
+                    const now = Date.now();
+                    const deltaTime = (now - this.lastUpdate) / 1000;
+                    
+                    const cookiesEarned = this.cookiesPerSecond * deltaTime;
+                    this.cookies += cookiesEarned;
+                    this.totalCookies += cookiesEarned;
+                    
+                    this.lastUpdate = now;
+                    this.updateDisplay();
+                    this.renderUpgrades();
+                    this.checkAchievements();
+                    this.saveGame();
+                }, 100);
+            }
+
+            saveGame() {
+                const gameState = {
+                    cookies: this.cookies,
+                    totalCookies: this.totalCookies,
+                    upgrades: this.upgrades,
+                    prestigeLevel: this.prestigeLevel,
+                    prestigeMultiplier: this.prestigeMultiplier,
+                    achievements: this.achievements,
+                    clickCount: this.clickCount
+                };
+                localStorage.setItem('cookieClickerSave', JSON.stringify(gameState));
+            }
+
+            loadGame() {
+                const saved = localStorage.getItem('cookieClickerSave');
+                if (saved) {
+                    try {
+                        const gameState = JSON.parse(saved);
+                        this.cookies = gameState.cookies || 0;
+                        this.totalCookies = gameState.totalCookies || 0;
+                        this.prestigeLevel = gameState.prestigeLevel || 0;
+                        this.prestigeMultiplier = gameState.prestigeMultiplier || 1;
+                        this.achievements = gameState.achievements || [];
+                        this.clickCount = gameState.clickCount || 0;
+                        
+                        if (gameState.upgrades) {
+                            gameState.upgrades.forEach((savedUpgrade, index) => {
+                                if (this.upgrades[index]) {
+                                    this.upgrades[index].owned = savedUpgrade.owned || 0;
+                                    this.upgrades[index].cost = savedUpgrade.cost || this.upgrades[index].cost;
+                                }
+                            });
+                        }
+                        
+                        this.calculateCPS();
+                        this.achievements.forEach(achievementName => {
+                            const achievement = this.achievementsList.find(a => a.name === achievementName);
+                            if (achievement) this.showAchievement(achievement);
+                        });
+                    } catch (e) {
+                        console.error('Failed to load save:', e);
+                    }
+                }
+            }
+        }
+
+        new CookieClicker();
+    </script>
+</body>
+</html>
